@@ -1,12 +1,9 @@
 #include <nds.h>
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
-
 #include "device.h"
-
 #include "console.h"
 #include "binaries.h"
 #include "nds_platform.h"
@@ -20,39 +17,13 @@ u8 curr_flashrom[0xA0000] = {0};
 PrintConsole topScreen;
 PrintConsole bottomScreen;
 
-void printBootMessage() {
-    consoleSelect(&topScreen);
-
-    iprintf("=    NDS NTRBOOT FLASHER    =\n\n");
-
-    consoleSelect(&bottomScreen);
-
-    iprintf("* Your cart cannot be used  *\n");
-    iprintf("* as a flashcart after it   *\n");
-    iprintf("* is flashed (except AK2i)  *\n");
-    iprintf("* WARNING: ONLY TESTED ON   *\n");
-    iprintf("* 3DS TWL MODE              *\n");
-    iprintf("* AT YOUR OWN RISK          *\n");
-
-    waitPressA();
-    consoleClear();
-}
-
-void printWarningEject() {
-    iprintf("DO NOT EJECT FLASHCART\n");
-    iprintf("UNTIL GET SPECIAL ORDER\n\n");
-}
-
 Flashcart* selectCart() {
     uint32_t idx = 0;
 
     consoleSelect(&bottomScreen);
     consoleClear();
 
-    iprintf("<UP/DOWN> Select flashcart\n");
-    iprintf("<A> Confirm\n");
-
-    iprintf("<B> Exit");
+    iprintf("<UP/DOWN> Select flashcart\n<A> Confirm\n<B> Exit");
 
     while (true) {
         consoleSelect(&topScreen);
@@ -89,16 +60,11 @@ Flashcart* selectCart() {
     }
 }
 
-
-
 int8_t selectDeviceType() {
     consoleSelect(&bottomScreen);
     consoleClear();
 
-    iprintf("Select 3DS device type\n\n");
-    iprintf("<A> RETAIL\n");
-    iprintf("<X> DEV\n");
-    iprintf("<B> Cancel");
+    iprintf("Select 3DS device type\n\n<A> RETAIL\n<X> DEV\n<B> Cancel");
 
     while (true) {
         scanKeys();
@@ -128,9 +94,7 @@ int inject(Flashcart *cart) {
 
     consoleSelect(&bottomScreen);
     consoleClear();
-
-    iprintf("Inject ntrboothax\n\n");
-    printWarningEject();
+    iprintf("Inject ntrboothax\n\nDO NOT EJECT FLASHCART\nUNTIL GET SPECIAL ORDER\n\n");
 
     cart->injectNtrBoot(blowfish_key, firm, firm_size);
     iprintf("\nDone\n\n");
@@ -148,34 +112,28 @@ int compareBuf(u8 *buf1, u8 *buf2, u32 len) {
     return 1;
 }
 
-
-
-
-
 int main(void) {
     videoSetMode(MODE_0_2D);
 	videoSetModeSub(MODE_0_2D);
-
-	vramSetBankA(VRAM_A_MAIN_BG);
+    vramSetBankA(VRAM_A_MAIN_BG);
 	vramSetBankC(VRAM_C_SUB_BG);
-
     consoleInit(&topScreen, 3,BgType_Text4bpp, BgSize_T_256x256, 31, 0, true, true);
-	consoleInit(&bottomScreen, 3,BgType_Text4bpp, BgSize_T_256x256, 31, 0, false, true);
-
+	consoleInit(&bottomScreen, 3,BgType_Text4bpp, BgSize_T_256x256, 31, 0, false, true); //Necessary stuff to print to console
     sysSetBusOwners(true, true); // give ARM9 access to the cart
 
-    printBootMessage();
+    consoleSelect(&topScreen);
+    iprintf("=    NDS NTRBOOT FLASHER    =\n\n");
+    consoleSelect(&bottomScreen);
+    iprintf("* Your cart cannot be used  *\n* as a flashcart after it   *\n* is flashed (except AK2i)  *\n* WARNING: ONLY TESTED ON   *\n* 3DS TWL MODE              *\n* AT YOUR OWN RISK          *\n");
+    waitPressA();
+    consoleClear();
 
-    Flashcart *cart;
+    Flashcart *cart; cart = NULL;
 
-select_cart:
-    cart = NULL;
     while (true) {
         cart = selectCart();
         if (cart == NULL) {
-
             return 0;
-
         }
 
         consoleSelect(&bottomScreen);
@@ -188,26 +146,10 @@ select_cart:
         waitPressA();
     }
 
-    bool support_restore = true;
-
-    support_restore = false;
-
-
     while (true) {
-flash_menu:
         consoleSelect(&bottomScreen);
         consoleClear();
-
-        if (!support_restore) {
-            iprintf("NOT SUPPORT RESTORE\n");
-            iprintf("Flashcart functionality will\n");
-            iprintf("be lost.\n\n");
-        }
-
-        iprintf("<A> Inject ntrboothax\n");
-
-        iprintf("<B> Exit\n");
-
+        iprintf("NOT SUPPORT RESTORE\nFlashcart functionality will\nbe lost.\n\n<A> Inject ntrboothax\n<B> Exit\n");
 
         while (true) {
             scanKeys();
@@ -218,7 +160,6 @@ flash_menu:
                 break;
             }
 
-
             if (keys & KEY_B) {
                 cart->shutdown();
                 return 0;
@@ -227,6 +168,5 @@ flash_menu:
             swiWaitForVBlank();
         }
     }
-
     return 0;
 }

@@ -46,8 +46,7 @@ void _sendCommand(const uint8_t *cmdbuf, uint16_t response_len, uint8_t *resp, u
             defaultFlags |= CARD_BLK_SIZE(4);
             break;
     }
-    cardPolledTransfer(defaultFlags | CARD_ACTIVATE | CARD_nRESET,
-                       (u32*)resp, (response_len / 4), reversed);
+    cardPolledTransfer(defaultFlags | CARD_ACTIVATE | CARD_nRESET, (u32*)resp, (response_len / 4), reversed);
 }
 
 bool platform::sendCommand(const uint8_t *cmdbuf, uint16_t response_len, uint8_t *resp, ntrcard::OpFlags flags) {
@@ -128,7 +127,5 @@ int platform::logMessage(log_priority priority, const char *fmt, ...) {
 const uint8_t dummyCommand[8] = {0x9F, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 
 void reset() {
-
-
     ntrcard::sendCommand(dummyCommand, 0x2000, NULL, 32);
 }
