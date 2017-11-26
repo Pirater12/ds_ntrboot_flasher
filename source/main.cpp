@@ -30,14 +30,8 @@ void printBootMessage() {
     iprintf("* Your cart cannot be used  *\n");
     iprintf("* as a flashcart after it   *\n");
     iprintf("* is flashed (except AK2i)  *\n");
-#ifndef NDSI_MODE
-    iprintf("* DO NOT CLOSE THIS APP IF  *\n");
-    iprintf("* YOU WISH TO RESTORE THE   *\n");
-    iprintf("* FLASH                     *\n");
-#else
     iprintf("* WARNING: ONLY TESTED ON   *\n");
     iprintf("* 3DS TWL MODE              *\n");
-#endif
     iprintf("* AT YOUR OWN RISK          *\n");
 
     waitPressA();
@@ -57,11 +51,9 @@ Flashcart* selectCart() {
 
     iprintf("<UP/DOWN> Select flashcart\n");
     iprintf("<A> Confirm\n");
-#ifndef NDSI_MODE
-    iprintf("<B> Cancel");
-#else
+
     iprintf("<B> Exit");
-#endif
+
     while (true) {
         consoleSelect(&topScreen);
         consoleClear();
@@ -285,11 +277,9 @@ select_cart:
     while (true) {
         cart = selectCart();
         if (cart == NULL) {
-#ifdef NDSI_MODE
+
             return 0;
-#else
-            continue;
-#endif
+
         }
 
         consoleSelect(&bottomScreen);
@@ -303,32 +293,15 @@ select_cart:
     }
 
     bool support_restore = true;
-#ifndef NDSI_MODE
-    if (!strcmp(cart->getName(), "R4iSDHC family")) {
-        support_restore = false;
-    }
 
-    if (support_restore && dump(cart)) {
-        iprintf("Flash read failed\n");
-        waitPressA();
-        goto select_cart;
-    }
-#else
     support_restore = false;
-#endif
+
 
     while (true) {
 flash_menu:
         consoleSelect(&bottomScreen);
         consoleClear();
-#ifndef NDSI_MODE
-        if (support_restore) {
-            iprintf("SUPPORT RESTORE\n");
-            iprintf("You can swap another\n");
-            iprintf("same type cartridge,\n");
-            iprintf("without the SD card.\n\n");
-        }
-#endif
+
         if (!support_restore) {
             iprintf("NOT SUPPORT RESTORE\n");
             iprintf("Flashcart functionality will\n");
@@ -336,15 +309,9 @@ flash_menu:
         }
 
         iprintf("<A> Inject ntrboothax\n");
-#ifndef NDSI_MODE
-        if (support_restore) {
-            iprintf("<X> Restore flash\n");
-            iprintf("<Y> Change cartridge\n");
-        }
-        iprintf("<B> Return\n");
-#else
+
         iprintf("<B> Exit\n");
-#endif
+
 
         while (true) {
             scanKeys();
@@ -355,38 +322,12 @@ flash_menu:
                 break;
             }
 
-#ifndef NDSI_MODE
-            if (support_restore) {
-                if (keys & KEY_X) {
-                    restore(cart);
-                    break;
-                }
-                if (keys & KEY_Y) {
-                    cart->shutdown();
-                    do {
-                        reset();
-                    } while(!cart->initialize());
-                    goto flash_menu;
-                }
-                if (keys & KEY_B) {
-                    if (waitConfirmLostDump()) {
-                        cart->shutdown();
-                        goto select_cart;
-                    }
-                    goto flash_menu;
-                }
-            } else {
-                if (keys & KEY_B) {
-                    cart->shutdown();
-                    goto flash_menu;
-                }
-            }
-#else
+
             if (keys & KEY_B) {
                 cart->shutdown();
                 return 0;
             }
-#endif
+
             swiWaitForVBlank();
         }
     }

@@ -12,15 +12,11 @@
 using namespace std;
 using namespace flashcart_core;
 
-#ifndef NDSI_MODE
-// NDS/NDSL required key initalize after hotswap
-extern const bool platform::HAS_HW_KEY2 = true;
-extern const bool platform::CAN_RESET = true;
-#else
+
 // NDSI mode will be already loaded BF key
 extern const bool platform::HAS_HW_KEY2 = false;
 extern const bool platform::CAN_RESET = false;
-#endif
+
 extern const ntrcard::Status platform::INITIAL_ENCRYPTION = ntrcard::Status::KEY2;
 
 void _sendCommand(const uint8_t *cmdbuf, uint16_t response_len, uint8_t *resp, uint32_t flags) {
@@ -132,15 +128,7 @@ int platform::logMessage(log_priority priority, const char *fmt, ...) {
 const uint8_t dummyCommand[8] = {0x9F, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 
 void reset() {
-#ifndef NDSI_MODE
-    iprintf("Please eject the cartridge,\n");
-    iprintf("remove the SD card,\n");
-    iprintf("then reinsert the cartridge.\n\n");
 
-    waitPressA();
-
-    ntrcard::state.status = ntrcard::Status::RAW;
-#endif
 
     ntrcard::sendCommand(dummyCommand, 0x2000, NULL, 32);
 }
