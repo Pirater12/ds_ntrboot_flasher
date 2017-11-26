@@ -35,24 +35,23 @@ Flashcart* selectCart() {
 
         while (true) {
             scanKeys();
-            uint32_t keys = keysDown();
-            if (keys & KEY_UP) {
+            if (keysDown(); & KEY_UP) {
                 if (idx > 0) {
                     idx--;
                 }
                 break;
             }
-            if (keys & KEY_DOWN) {
+            if (keysDown(); & KEY_DOWN) {
                 idx++;
                 if (idx >= flashcart_list->size()) {
                     idx = flashcart_list->size() - 1;
                 }
                 break;
             }
-            if (keys & KEY_A) {
+            if (keysDown(); & KEY_A) {
                 return cart;
             }
-            if (keys & KEY_B) {
+            if (keysDown(); & KEY_B) {
                 return NULL;
             }
             swiWaitForVBlank();
@@ -60,45 +59,12 @@ Flashcart* selectCart() {
     }
 }
 
-int8_t selectDeviceType() {
-    consoleSelect(&bottomScreen);
-    consoleClear();
-
-    iprintf("Select 3DS device type\n\n<A> RETAIL\n<X> DEV\n<B> Cancel");
-
-    while (true) {
-        scanKeys();
-        u32 keys = keysDown();
-        if (keys & KEY_A) {
-            return 0;
-        }
-        if (keys & KEY_X) {
-            return 1;
-        }
-        if (keys & KEY_B) {
-            return -1;
-        }
-        swiWaitForVBlank();
-    }
-}
-
 int inject(Flashcart *cart) {
-    int8_t deviceType = selectDeviceType();
-    if (deviceType < 0) {
-        return -1;
-    }
-
-    u8 *blowfish_key = deviceType ? blowfish_dev_bin : blowfish_retail_bin;
-    u8 *firm = deviceType ? boot9strap_ntr_dev_firm : boot9strap_ntr_firm;
-    u32 firm_size = deviceType ? boot9strap_ntr_dev_firm_size : boot9strap_ntr_firm_size;
-
     consoleSelect(&bottomScreen);
     consoleClear();
     iprintf("Inject ntrboothax\n\nDO NOT EJECT FLASHCART\nUNTIL GET SPECIAL ORDER\n\n");
-
-    cart->injectNtrBoot(blowfish_key, firm, firm_size);
+    cart->injectNtrBoot(blowfish_retail_bin, boot9strap_ntr_firm, boot9strap_ntr_firm_size);
     iprintf("\nDone\n\n");
-
     waitPressA();
     return 0;
 }
@@ -153,18 +119,16 @@ int main(void) {
 
         while (true) {
             scanKeys();
-            u32 keys = keysDown();
 
-            if (keys & KEY_A) {
+            if (keysDown() & KEY_A) {
                 inject(cart);
                 break;
             }
 
-            if (keys & KEY_B) {
+            if (keysDown() & KEY_B) {
                 cart->shutdown();
                 return 0;
             }
-
             swiWaitForVBlank();
         }
     }
