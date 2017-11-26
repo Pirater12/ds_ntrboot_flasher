@@ -89,39 +89,7 @@ Flashcart* selectCart() {
     }
 }
 
-u8 dump(Flashcart *cart) {
-    consoleSelect(&bottomScreen);
-    consoleClear();
-    iprintf("Reading cart flash\n");
 
-    // FIXME: we need to check flashcart's data position
-    u32 length = cart->getMaxLength();
-    if (length > 0xA0000) {
-        length = 0xA0000;
-    }
-    memset(orig_flashrom, 0, 0xA0000);
-    u8 *temp = orig_flashrom;
-
-    if (!cart->readFlash(0, length, temp)) {
-        return 1;
-    }
-
-#if defined(DEBUG_DUMP)
-    for (int i = 0; i < length; i+=16) {
-        iprintf("%05X:", i);
-        for (int j = 0; j < 16; j++) {
-            iprintf("%02X", orig_flashrom[i + j]);
-        }
-        iprintf("\n");
-#if DEBUG_DUMP == 2
-        waitPressA();
-#else
-        break;
-#endif
-    }
-#endif
-    return 0;
-}
 
 int8_t selectDeviceType() {
     consoleSelect(&bottomScreen);
@@ -180,81 +148,9 @@ int compareBuf(u8 *buf1, u8 *buf2, u32 len) {
     return 1;
 }
 
-int restore(Flashcart *cart) {
-    u32 length = cart->getMaxLength();
-    if (length > 0xA0000) {
-        length = 0xA0000;
-    }
 
-    memset(curr_flashrom, 0, 0xA0000);
-    u8 *temp = curr_flashrom;
 
-    consoleSelect(&bottomScreen);
-    consoleClear();
 
-    iprintf("Restore original flash\n\n");
-    printWarningEject();
-
-    iprintf("reading current flash\n");
-    cart->readFlash(0, length, temp);
-
-    iprintf("\n\nrestoring original flash\n");
-
-    const int chunk_size = 64 * 1024;
-    int chunk = 0;
-    disablePrintProgress();
-    for (uint32_t i = 0; i < length; i += chunk_size) {
-        if (!compareBuf(orig_flashrom + i, curr_flashrom + i, chunk_size)) {
-            iprintf("\rWriting chunk          %08X", chunk);
-            cart->writeFlash(i, chunk_size, orig_flashrom + i);
-        }
-        chunk += 1;
-    }
-    enablePrintProgress();
-
-    memset(curr_flashrom, 0, 0xA0000);
-    temp = curr_flashrom;
-
-    iprintf("\n\nverifying...  ");
-    cart->readFlash(0, length, temp);
-
-    for (uint32_t i = 0; i < length; i += chunk_size) {
-        if (!compareBuf(orig_flashrom + i, curr_flashrom + i, chunk_size)) {
-            iprintf("\nfail");
-            goto exit;
-        }
-    }
-    iprintf("\nok");
-
-exit:
-    iprintf("\nDone\n\n");
-
-    waitPressA();
-
-    return 0;
-}
-
-int waitConfirmLostDump() {
-    consoleSelect(&bottomScreen);
-    consoleClear();
-    iprintf("If you continue, the cart's\n");
-    iprintf("flash will be lost.\n\n");
-    iprintf("<Y> Continue\n");
-    iprintf("<B> Cancel\n");
-
-    while (true) {
-        scanKeys();
-        u32 keys = keysDown();
-
-        if (keys & KEY_Y) {
-            return 1;
-        }
-        if (keys & KEY_B) {
-            return 0;
-        }
-        swiWaitForVBlank();
-    }
-}
 
 int main(void) {
     videoSetMode(MODE_0_2D);
