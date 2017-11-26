@@ -17,6 +17,25 @@ u8 curr_flashrom[0xA0000] = {0};
 PrintConsole topScreen;
 PrintConsole bottomScreen;
 
+int inject(Flashcart *cart) {
+    consoleSelect(&bottomScreen);
+    consoleClear();
+    iprintf("Inject ntrboothax\n\nDO NOT EJECT FLASHCART\nUNTIL GET SPECIAL ORDER\n\n");
+    cart->injectNtrBoot(blowfish_retail_bin, boot9strap_ntr_firm, boot9strap_ntr_firm_size);
+    iprintf("\nDone\n\n");
+    waitPressA();
+    return 0;
+}
+
+int compareBuf(u8 *buf1, u8 *buf2, u32 len) {
+    for (uint32_t i = 0; i < len; i++) {
+        if (buf1[i] != buf2[i]) {
+            return 0;
+        }
+    }
+    return 1;
+}
+
 Flashcart* selectCart() {
     uint32_t idx = 0;
 
@@ -35,47 +54,28 @@ Flashcart* selectCart() {
 
         while (true) {
             scanKeys();
-            if (keysDown(); & KEY_UP) {
+            if (keysDown() & KEY_UP) {
                 if (idx > 0) {
                     idx--;
                 }
                 break;
             }
-            if (keysDown(); & KEY_DOWN) {
+            if (keysDown() & KEY_DOWN) {
                 idx++;
                 if (idx >= flashcart_list->size()) {
                     idx = flashcart_list->size() - 1;
                 }
                 break;
             }
-            if (keysDown(); & KEY_A) {
+            if (keysDown() & KEY_A) {
                 return cart;
             }
-            if (keysDown(); & KEY_B) {
+            if (keysDown() & KEY_B) {
                 return NULL;
             }
             swiWaitForVBlank();
         }
     }
-}
-
-int inject(Flashcart *cart) {
-    consoleSelect(&bottomScreen);
-    consoleClear();
-    iprintf("Inject ntrboothax\n\nDO NOT EJECT FLASHCART\nUNTIL GET SPECIAL ORDER\n\n");
-    cart->injectNtrBoot(blowfish_retail_bin, boot9strap_ntr_firm, boot9strap_ntr_firm_size);
-    iprintf("\nDone\n\n");
-    waitPressA();
-    return 0;
-}
-
-int compareBuf(u8 *buf1, u8 *buf2, u32 len) {
-    for (uint32_t i = 0; i < len; i++) {
-        if (buf1[i] != buf2[i]) {
-            return 0;
-        }
-    }
-    return 1;
 }
 
 int main(void) {
