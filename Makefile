@@ -17,7 +17,7 @@ include $(DEVKITARM)/ds_rules
 #---------------------------------------------------------------------------------
 TARGET		:=	$(shell basename $(CURDIR))
 BUILD		:=	build
-SOURCES		:=	source external/flashcart_core external/flashcart_core/devices
+SOURCES		:=	source external/flashcart_core external/flashcart_core/devices source/common
 DATA		:=	data
 INCLUDES	:=	include external/flashcart_core
 

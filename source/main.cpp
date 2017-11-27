@@ -1,8 +1,9 @@
 #include <nds.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include <ctype.h>
+#include "common/ui.h"
 #include "device.h"
 #include "console.h"
 #include "binaries.h"
