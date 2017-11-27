@@ -17,6 +17,24 @@ void ClearScreen(u16 *screen, u16 color)
 	}
 }
 
+void InitializeScreens(void)
+{
+	REG_DISPCNT = MODE_3_2D | DISPLAY_BG3_ACTIVE;
+    REG_DISPCNT_SUB = MODE_3_2D | DISPLAY_BG3_ACTIVE;
+
+    // Set bg3 on both displays large enough to fill the screen, use 15 bit
+    // RGB color values, and look for bitmap data at character base block 1.
+    REG_BG3CNT =  BgSize_R_256x256| BG_15BITCOLOR | BG_CBB1;
+    REG_BG3CNT_SUB = BgSize_R_256x256 | BG_15BITCOLOR | BG_CBB1;
+
+    // Don't scale bg3 (set its affine transformation matrix to [[1,0],[0,1]])
+    REG_BG3PA = 1 << 8;
+    REG_BG3PD = 1 << 8;
+
+    REG_BG3PA_SUB = 1 << 8;
+    REG_BG3PD_SUB= 1 << 8;	
+}
+
 void DrawRectangle(u16 *screen, int x, int y, int width, int height, u16 color) {
 
     for (int c = x; c < x+width; c++) 

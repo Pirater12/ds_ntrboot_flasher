@@ -42,6 +42,7 @@
 
 void setPixel(u16 *screen, int r, int c, u16 color);
 void ClearScreen(u16 *screen, u16 color);
+void InitializeScreens(void);
 void DrawRectangle(u16 *screen, int x, int y, int width, int height, u16 color);
 
 void DrawCharacter(u16 *screen, int character, int x, int y, u16 color);
